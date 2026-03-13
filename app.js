@@ -1,13 +1,15 @@
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const Url = require("./models/Url");
 
-app.use(express.urlencoded({ extended: true }));
+dotenv.config();
 
+app.use(express.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/lynkly";
+const MONGO_URL = process.env.MONGO_URL;
 
 main()
 .then(() => {
@@ -19,7 +21,7 @@ main()
 
 async function main() {
     await mongoose.connect(MONGO_URL);
-};
+}
 
 app.get("/", (req,res)=>{
     res.render("index");
@@ -28,11 +30,14 @@ app.get("/", (req,res)=>{
 app.post("/shorten", async (req,res)=>{
     const {originalUrl} = req.body;
     const shortCode = Math.random().toString(36).substring(2,8);
+
     const newUrl = new Url({
         originalUrl,
         shortCode
     });
+
     await newUrl.save();
+
     const shortUrl = `http://localhost:8080/${shortCode}`;
     res.render("result",{shortUrl});
 });
@@ -40,9 +45,11 @@ app.post("/shorten", async (req,res)=>{
 app.get("/:shortCode", async (req,res) => {
     const { shortCode } = req.params;
     const url = await Url.findOne({ shortCode });
+
     if(!url){
         return res.send("URL not found");
     }
+
     url.clicks++;
     await url.save();
 
