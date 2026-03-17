@@ -1,74 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-    <title>Your Short URL</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        body {
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f5f2ef;
-            font-family: Arial, sans-serif;
-        }
-
-        .card-box {
-            width: 520px;
-            padding: 45px;
-            border-radius: 14px;
-            background: white;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
-
-        .short-url {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 20px 0;
-            color: #7a0c1e;
-            word-break: break-all;
-        }
-
-        .short-url a {
-            text-decoration: none;
-            color: #7a0c1e;
-        }
-
-        .short-url a:hover {
-            text-decoration: underline;
-        }
-    </style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Short URL – Lynkly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
 </head>
-
 <body>
-
-    <div class="card-box">
-
-        <h3 style="color:#7a0c1e;">Your Short URL is Ready</h3>
-
-        <div class="short-url">
-            <a href="<%= shortUrl %>">
-                <%= shortUrl %>
-            </a>
-        </div>
-
-        <div class="d-flex justify-content-center gap-3">
-
-            <a href="/" class="btn btn-outline-dark">
-                Shorten Another
-            </a>
-
-        </div>
-
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">🔗 Lynkly</a>
+      <div class="nav-links">
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/auth/logout" class="nav-link btn-outline-nav">Logout</a>
+      </div>
     </div>
+  </nav>
+  <main class="auth-page">
+    <div class="result-card">
+      <div class="result-icon">🎉</div>
+      <h1>Your Short Link is Ready!</h1>
+      <div class="result-details">
+        <div class="result-row">
+          <span class="result-label">Original URL</span>
+          <a href="<%= originalUrl %>" target="_blank" class="result-value original">
+            <%= originalUrl.length> 60 ? originalUrl.substring(0, 60) + '...' : originalUrl %>
+          </a>
+        </div>
+        <div class="result-row highlight">
+          <span class="result-label">Short URL</span>
+          <a href="<%= shortUrl %>" target="_blank" class="result-value short" id="short-url-text">
+            <%= shortUrl %>
+          </a>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-primary" onclick="copyShortUrl()" id="copy-result-btn">📋 Copy Short URL</button>
+        <a href="/dashboard" class="btn btn-ghost">← Back to Dashboard</a>
+      </div>
+    </div>
+  </main>
 
+  <script>
+    function copyShortUrl() {
+      const url = document.getElementById('short-url-text').textContent.trim();
+      navigator.clipboard.writeText(url).then(function () {
+        const btn = document.getElementById('copy-result-btn');
+        btn.textContent = '✅ Copied!';
+        setTimeout(function () { btn.textContent = '📋 Copy Short URL'; }, 2000);
+      });
+    }
+  </script>
 </body>
-
 </html>

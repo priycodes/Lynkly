@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification – Lynkly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">🔗 Lynkly</a>
+      <div class="nav-links">
+        <a href="/auth/login" class="nav-link">Login</a>
+        <a href="/auth/register" class="nav-link btn-primary-nav">Sign Up</a>
+      </div>
+    </div>
+  </nav>
+  <main class="auth-page">
+    <div class="verify-card">
+      <% if (success) { %>
+        <div class="verify-icon success">✅</div>
+        <h1>Email Verified!</h1>
+        <p>
+          <%= message %>
+        </p>
+        <a href="/auth/login" class="btn btn-primary btn-lg">Log In Now →</a>
+        <% } else { %>
+          <div class="verify-icon error">❌</div>
+          <h1>Verification Failed</h1>
+          <p>
+            <%= message %>
+          </p>
+          <a href="/auth/register" class="btn btn-ghost btn-lg">Try Again</a>
+          <% } %>
+    </div>
+  </main>
+</body>
+</html>

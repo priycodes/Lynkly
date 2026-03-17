@@ -1,66 +1,69 @@
 const express = require("express");
-const app = express();
 const mongoose = require("mongoose");
+const session = require("express-session");
+const path = require("path");
 const dotenv = require("dotenv");
-const Url = require("./models/Url");
 
 dotenv.config();
 
-app.use(express.urlencoded({ extended: true }));
-app.set("view engine", "ejs");
+const app = express();
 
+// view engine
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+
+// Middleware 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
+
+// Session 
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "lynkly-fallback-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 * 24 }, // 24 hours
+  })
+);
+
+// Make session user available in all EJS views
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session.userId
+    ? { id: req.session.userId, name: req.session.userName }
+    : null;
+  next();
+});
+
+// Routes 
+const authRoutes = require("./routes/auth");
+const urlRoutes = require("./routes/url");
+
+// Homepage
+app.get("/", (req, res) => {
+  res.render("index", { error: null });
+});
+
+// Auth routes (/auth/register, /auth/login, etc.)
+app.use("/auth", authRoutes);
+
+// URL routes (/dashboard, /shorten, /url/delete/:id, /:shortCode)
+// IMPORTANT: mount LAST so /:shortCode doesn't catch other routes
+app.use("/", urlRoutes);
+
+// MongoDB Connection
 const MONGO_URL = process.env.MONGO_URL;
 
-main()
-.then(() => {
-    console.log("connected to DB");
-})
-.catch((err) => {
-    console.log(err);
-});
+mongoose
+  .connect(MONGO_URL)
+  .then(() => {
+    console.log("✅ Connected to MongoDB");
 
-async function main() {
-    await mongoose.connect(MONGO_URL);
-}
-
-app.get("/", (req,res)=>{
-    res.render("index");
-});
-
-app.post("/shorten", async (req,res)=>{
-    const {originalUrl} = req.body;
-    const shortCode = Math.random().toString(36).substring(2,8);
-
-    const newUrl = new Url({
-        originalUrl,
-        shortCode
+    const PORT = process.env.PORT || 8080;
+    app.listen(PORT, () => {
+      console.log(`🚀 Lynkly is running at http://localhost:${PORT}`);
     });
-
-    await newUrl.save();
-
-    const shortUrl = `http://localhost:8080/${shortCode}`;
-    res.render("result",{shortUrl});
-});
-
-app.get("/:shortCode", async (req,res) => {
-    const { shortCode } = req.params;
-    const url = await Url.findOne({ shortCode });
-
-    if(!url){
-        return res.send("URL not found");
-    }
-
-    url.clicks++;
-    await url.save();
-
-    res.redirect(url.originalUrl);
-});
-
-app.get("/urls", async (req,res) => {
-    const urls = await Url.find();
-    res.send(urls);
-});
-
-app.listen(8080, () => {
-    console.log("server is listening to port 8080");
-});
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+  }); 

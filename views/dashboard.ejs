@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – Lynkly</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-brand">🔗 Lynkly</a>
+      <div class="nav-links">
+        <a href="/dashboard" class="nav-link active">Dashboard</a>
+        <a href="/auth/logout" class="nav-link btn-outline-nav">Logout</a>
+      </div>
+    </div> 
+  </nav>
+
+  <main class="dashboard-page">
+    <div class="dashboard-container">
+
+      <!-- Welcome & Create Section -->
+      <div class="dashboard-header">
+        <div>
+          <h1>Welcome, <span class="gradient-text"><%= userName %></span> 👋</h1>
+          <p class="dashboard-subtitle">Manage your shortened links below</p>
+        </div>
+      </div>
+
+      <!-- Create Short URL Form -->
+      <div class="create-url-card">
+        <h2>🔗 Shorten a New Link</h2>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+          <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <form action="/shorten" method="POST" class="create-url-form" id="shorten-form">
+          <div class="form-row">
+            <div class="form-group form-group-grow">
+              <label for="originalUrl">Long URL</label>
+              <input type="url" id="originalUrl" name="originalUrl" placeholder="https://example.com/very-long-url..." required>
+            </div>
+            <div class="form-group">
+              <label for="customAlias">Custom Alias <span class="optional">(optional)</span></label>
+              <input type="text" id="customAlias" name="customAlias" placeholder="my-link" pattern="[a-zA-Z0-9_-]+" title="Only letters, numbers, hyphens, and underscores">
+            </div>
+            <div class="form-group form-group-btn">
+              <button type="submit" class="btn btn-primary" id="shorten-btn">Shorten →</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- URLs Table -->
+      <div class="urls-section">
+        <h2>📊 Your Links <span class="url-count">(<%= urls.length %>)</span></h2>
+
+        <% if (urls.length === 0) { %>
+          <div class="empty-state">
+            <div class="empty-icon">🔗</div>
+            <h3>No links yet</h3>
+            <p>Create your first shortened URL using the form above!</p>
+          </div>
+        <% } else { %>
+          <div class="table-wrapper">
+            <table class="urls-table" id="urls-table">
+              <thead>
+                <tr>
+                  <th>Original URL</th>
+                  <th>Short URL</th>
+                  <th>Clicks</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% urls.forEach(function(url) { %>
+                  <tr>
+                    <td class="url-cell">
+                      <a href="<%= url.originalUrl %>" target="_blank" class="original-url" title="<%= url.originalUrl %>">
+                        <%= url.originalUrl.length > 50 ? url.originalUrl.substring(0, 50) + '...' : url.originalUrl %>
+                      </a>
+                    </td>
+                    <td class="short-url-cell">
+                      <a href="<%= baseUrl %>/<%= url.shortCode %>" target="_blank" class="short-url-link">
+                        <%= baseUrl %>/<%= url.shortCode %>
+                      </a>
+                    </td>
+                    <td class="clicks-cell">
+                      <span class="click-badge"><%= url.clicks %></span>
+                    </td>
+                    <td class="date-cell">
+                      <%= new Date(url.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %>
+                    </td>
+                    <td class="actions-cell">
+                      <button class="btn btn-sm btn-copy" onclick="copyUrl('<%= baseUrl %>/<%= url.shortCode %>')" title="Copy short URL">
+                        📋 Copy
+                      </button>
+                      <form action="/url/delete/<%= url._id %>" method="POST" class="inline-form" onsubmit="return confirm('Delete this link?')">
+                        <button type="submit" class="btn btn-sm btn-danger" title="Delete URL">
+                          🗑️ Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } %>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function copyUrl(url) {
+      navigator.clipboard.writeText(url).then(function() {
+        // Show a brief toast
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = '✅ Copied to clipboard!';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+          toast.classList.add('toast-show');
+        }, 10);
+        setTimeout(function() {
+          toast.classList.remove('toast-show');
+          setTimeout(function() { toast.remove(); }, 300);
+        }, 2000);
+      }).catch(function() {
+        // Fallback: select and copy
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        input.remove();
+        alert('Copied: ' + url);
+      });
+    }
+  </script>
+
+</body>
+</html>
